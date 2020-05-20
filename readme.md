@@ -51,7 +51,7 @@ mysqladmin create ${newdb}
 mysql ${newdb} < /backup-mydata/${olddb}_restored.sql
 ```
 
-Run 5 step process to DISCARD ${newdb} database table spaces & IMPORT the original database's table data from `.ibd` files
+Run 5 step process to DISCARD ${newdb} database table spaces & IMPORT the original database's table data from `.ibd` files. Each of the 5 step stages are a for loop so you need to copy and paste the entire `for ... done` loop lines into SSH command line for it to work.
 
 ## stage 1
 
