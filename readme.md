@@ -2,6 +2,121 @@
 
 `/var/lib/mysql/ibdata1` is an important file which contains MySQL InnoDB database data and mappings for per InnoDB file database tables. If you delete this file and restarted MySQL server, then MySQL server would of re-created a new `ibdata1` file but it will not contain the mapping to your existing InnoDB database tables anymore - you will have broken the mapping and this can result in web applications and MySQL clients not being able to access your MySQL database's InnoDB data. The below guide is a quick overview of how to rebuild this mapping. The guide only works and assumes, you have your `/etc/my.cnf` set with `innodb_file_per_table = 1` to enable per InnoDB table files which will save InnoDB database table data in their own files as opposed to within `ibdata1` itself.
 
+If `/var/lib/mysql/ibdata1` is deleted, then MySQL server would re-created a new `ibdata1` file on MySQL server startup but you will loose MySQL InnoDB database/table mapping
+
+```
+journalctl -u mariadb --no-pager | tail -35
+May 20 21:10:45 host systemd[1]: Starting MariaDB 10.3.23 database server...
+May 20 21:10:46 host mysqld[2720]: 2020-05-20 21:10:46 0 [Note] /usr/sbin/mysqld (mysqld 10.3.23-MariaDB) starting as process 2720 ...
+May 20 21:10:46 host mysqld[2720]: 2020-05-20 21:10:46 0 [Note] InnoDB: Using Linux native AIO
+May 20 21:10:46 host mysqld[2720]: 2020-05-20 21:10:46 0 [Note] InnoDB: The first innodb_system data file 'ibdata1' did not exist. A new tablespace will be created!
+May 20 21:10:46 host mysqld[2720]: 2020-05-20 21:10:46 0 [Note] InnoDB: Mutexes and rw_locks use GCC atomic builtins
+May 20 21:10:46 host mysqld[2720]: 2020-05-20 21:10:46 0 [Note] InnoDB: Uses event mutexes
+May 20 21:10:46 host mysqld[2720]: 2020-05-20 21:10:46 0 [Note] InnoDB: Compressed tables use zlib 1.2.7
+May 20 21:10:46 host mysqld[2720]: 2020-05-20 21:10:46 0 [Note] InnoDB: Number of pools: 1
+May 20 21:10:46 host mysqld[2720]: 2020-05-20 21:10:46 0 [Note] InnoDB: Using SSE2 crc32 instructions
+May 20 21:10:46 host mysqld[2720]: 2020-05-20 21:10:46 0 [Note] InnoDB: Initializing buffer pool, total size = 48M, instances = 1, chunk size = 48M
+May 20 21:10:46 host mysqld[2720]: 2020-05-20 21:10:46 0 [Note] InnoDB: Completed initialization of buffer pool
+May 20 21:10:46 host mysqld[2720]: 2020-05-20 21:10:46 0 [Note] InnoDB: If the mysqld execution user is authorized, page cleaner thread priority can be changed. See the man page of setpriority().
+May 20 21:10:46 host mysqld[2720]: 2020-05-20 21:10:46 0 [Note] InnoDB: Setting file './ibdata1' size to 10 MB. Physically writing the file full; Please wait ...
+May 20 21:10:46 host mysqld[2720]: 2020-05-20 21:10:46 0 [Note] InnoDB: File './ibdata1' size is now 10 MB.
+May 20 21:10:46 host mysqld[2720]: 2020-05-20 21:10:46 0 [Note] InnoDB: Setting log file ./ib_logfile101 size to 134217728 bytes
+May 20 21:10:46 host mysqld[2720]: 2020-05-20 21:10:46 0 [Note] InnoDB: Setting log file ./ib_logfile1 size to 134217728 bytes
+May 20 21:10:46 host mysqld[2720]: 2020-05-20 21:10:46 0 [Note] InnoDB: Renaming log file ./ib_logfile101 to ./ib_logfile0
+May 20 21:10:46 host mysqld[2720]: 2020-05-20 21:10:46 0 [Note] InnoDB: New log files created, LSN=44898
+May 20 21:10:46 host mysqld[2720]: 2020-05-20 21:10:46 0 [Note] InnoDB: Doublewrite buffer not found: creating new
+May 20 21:10:46 host mysqld[2720]: 2020-05-20 21:10:46 0 [Note] InnoDB: Doublewrite buffer created
+May 20 21:10:46 host mysqld[2720]: 2020-05-20 21:10:46 0 [Note] InnoDB: 128 out of 128 rollback segments are active.
+May 20 21:10:46 host mysqld[2720]: 2020-05-20 21:10:46 0 [Note] InnoDB: Creating foreign key constraint system tables.
+May 20 21:10:46 host mysqld[2720]: 2020-05-20 21:10:46 0 [Note] InnoDB: Creating tablespace and datafile system tables.
+May 20 21:10:46 host mysqld[2720]: 2020-05-20 21:10:46 0 [Note] InnoDB: Creating sys_virtual system tables.
+May 20 21:10:46 host mysqld[2720]: 2020-05-20 21:10:46 0 [Note] InnoDB: Creating shared tablespace for temporary tables
+May 20 21:10:46 host mysqld[2720]: 2020-05-20 21:10:46 0 [Note] InnoDB: Setting file './ibtmp1' size to 12 MB. Physically writing the file full; Please wait ...
+May 20 21:10:46 host mysqld[2720]: 2020-05-20 21:10:46 0 [Note] InnoDB: File './ibtmp1' size is now 12 MB.
+May 20 21:10:46 host mysqld[2720]: 2020-05-20 21:10:46 0 [Note] InnoDB: Waiting for purge to start
+May 20 21:10:46 host mysqld[2720]: 2020-05-20 21:10:46 0 [Note] InnoDB: 10.3.23 started; log sequence number 0; transaction id 7
+May 20 21:10:46 host mysqld[2720]: 2020-05-20 21:10:46 0 [Note] Plugin 'FEEDBACK' is disabled.
+May 20 21:10:46 host mysqld[2720]: 2020-05-20 21:10:46 0 [Note] Server socket created on IP: '::'.
+May 20 21:10:46 host mysqld[2720]: 2020-05-20 21:10:46 3 [Warning] Failed to load slave replication state from table mysql.gtid_slave_pos: 1932: Table 'mysql.gtid_slave_pos' doesn't exist in engine
+May 20 21:10:46 host mysqld[2720]: 2020-05-20 21:10:46 0 [Note] /usr/sbin/mysqld: ready for connections.
+May 20 21:10:46 host mysqld[2720]: Version: '10.3.23-MariaDB'  socket: '/var/lib/mysql/mysql.sock'  port: 3306  MariaDB Server
+May 20 21:10:46 host systemd[1]: Started MariaDB 10.3.23 database server.
+```
+
+Notice some of the signs in the logging for messages such as
+
+```
+May 20 21:10:46 host mysqld[2720]: 2020-05-20 21:10:46 0 [Note] InnoDB: The first innodb_system data file 'ibdata1' did not exist. A new tablespace will be created!
+```
+
+and missing system `mysql` database tables which are there physically but lost it's mapping due to `ibdata1` file being deleted.
+
+```
+May 20 21:10:46 host mysqld[2720]: 2020-05-20 21:10:46 3 [Warning] Failed to load slave replication state from table mysql.gtid_slave_pos: 1932: Table 'mysql.gtid_slave_pos' doesn't exist in engine
+```
+
+Inspecting system `mysql` database tables show the InnoDB tables for `mysql.gtid_slave_pos`, `mysql.innodb_index_stats`, `mysql.innodb_table_stats` and `mysql.transaction_registry` are reporting NULL when `ibdata1` was deleted while other system tables are fine (because they're MyISAM based and not affected by `ibdata1` deletion)
+
+```
+mysql -t -e "SELECT CONCAT(table_schema,'.',table_name) AS 'Table Name', CONCAT(ROUND(table_rows,2),' Rows') AS 'Number of Rows',ENGINE AS 'Storage Engine',CONCAT(ROUND(data_length/(1024*1024),2),'MB') AS 'Data Size',CONCAT(ROUND(index_length/(1024*1024),2),'MB') AS 'Index Size' ,CONCAT(ROUND((data_length+index_length)/(1024*1024),2),'MB') AS'Total', ROW_FORMAT, TABLE_COLLATION FROM information_schema.TABLES WHERE table_schema LIKE '$olddb';"
++---------------------------------+----------------+----------------+-----------+------------+--------+------------+-----------------+
+| Table Name                      | Number of Rows | Storage Engine | Data Size | Index Size | Total  | ROW_FORMAT | TABLE_COLLATION |
++---------------------------------+----------------+----------------+-----------+------------+--------+------------+-----------------+
+| mysql.plugin                    | 4 Rows         | MyISAM         | 0.00MB    | 0.00MB     | 0.00MB | Dynamic    | utf8_general_ci |
+| mysql.tables_priv               | 0 Rows         | MyISAM         | 0.00MB    | 0.00MB     | 0.00MB | Fixed      | utf8_bin        |
+| mysql.roles_mapping             | 0 Rows         | MyISAM         | 0.00MB    | 0.00MB     | 0.00MB | Fixed      | utf8_bin        |
+| mysql.user                      | 5 Rows         | MyISAM         | 0.00MB    | 0.00MB     | 0.00MB | Dynamic    | utf8_bin        |
+| mysql.servers                   | 0 Rows         | MyISAM         | 0.00MB    | 0.00MB     | 0.00MB | Fixed      | utf8_general_ci |
+| mysql.columns_priv              | 0 Rows         | MyISAM         | 0.00MB    | 0.00MB     | 0.00MB | Fixed      | utf8_bin        |
+| mysql.db                        | 3 Rows         | MyISAM         | 0.00MB    | 0.01MB     | 0.01MB | Fixed      | utf8_bin        |
+| mysql.help_topic                | 508 Rows       | MyISAM         | 0.39MB    | 0.02MB     | 0.41MB | Dynamic    | utf8_general_ci |
+| mysql.help_category             | 39 Rows        | MyISAM         | 0.00MB    | 0.00MB     | 0.00MB | Dynamic    | utf8_general_ci |
+| mysql.help_relation             | 1028 Rows      | MyISAM         | 0.01MB    | 0.02MB     | 0.03MB | Fixed      | utf8_general_ci |
+| mysql.help_keyword              | 464 Rows       | MyISAM         | 0.09MB    | 0.02MB     | 0.10MB | Fixed      | utf8_general_ci |
+| mysql.time_zone_name            | 0 Rows         | MyISAM         | 0.00MB    | 0.00MB     | 0.00MB | Fixed      | utf8_general_ci |
+| mysql.time_zone                 | 0 Rows         | MyISAM         | 0.00MB    | 0.00MB     | 0.00MB | Fixed      | utf8_general_ci |
+| mysql.time_zone_transition      | 0 Rows         | MyISAM         | 0.00MB    | 0.00MB     | 0.00MB | Fixed      | utf8_general_ci |
+| mysql.time_zone_transition_type | 0 Rows         | MyISAM         | 0.00MB    | 0.00MB     | 0.00MB | Fixed      | utf8_general_ci |
+| mysql.time_zone_leap_second     | 0 Rows         | MyISAM         | 0.00MB    | 0.00MB     | 0.00MB | Fixed      | utf8_general_ci |
+| mysql.proc                      | 2 Rows         | MyISAM         | 0.00MB    | 0.00MB     | 0.01MB | Dynamic    | utf8_general_ci |
+| mysql.host                      | 0 Rows         | MyISAM         | 0.00MB    | 0.00MB     | 0.00MB | Fixed      | utf8_bin        |
+| mysql.general_log               | 2 Rows         | CSV            | 0.00MB    | 0.00MB     | 0.00MB | Dynamic    | utf8_general_ci |
+| mysql.slow_log                  | 2 Rows         | CSV            | 0.00MB    | 0.00MB     | 0.00MB | Dynamic    | utf8_general_ci |
+| mysql.event                     | 0 Rows         | MyISAM         | 0.00MB    | 0.00MB     | 0.00MB | Dynamic    | utf8_general_ci |
+| mysql.gtid_slave_pos            | NULL           | NULL           | NULL      | NULL       | NULL   | NULL       | NULL            |
+| mysql.innodb_index_stats        | NULL           | NULL           | NULL      | NULL       | NULL   | NULL       | NULL            |
+| mysql.proxies_priv              | 2 Rows         | MyISAM         | 0.00MB    | 0.01MB     | 0.01MB | Fixed      | utf8_bin        |
+| mysql.table_stats               | 0 Rows         | MyISAM         | 0.00MB    | 0.00MB     | 0.00MB | Dynamic    | utf8_bin        |
+| mysql.column_stats              | 0 Rows         | MyISAM         | 0.00MB    | 0.00MB     | 0.00MB | Dynamic    | utf8_bin        |
+| mysql.index_stats               | 0 Rows         | MyISAM         | 0.00MB    | 0.00MB     | 0.00MB | Dynamic    | utf8_bin        |
+| mysql.innodb_table_stats        | NULL           | NULL           | NULL      | NULL       | NULL   | NULL       | NULL            |
+| mysql.transaction_registry      | NULL           | NULL           | NULL      | NULL       | NULL   | NULL       | NULL            |
+| mysql.func                      | 0 Rows         | MyISAM         | 0.00MB    | 0.00MB     | 0.00MB | Fixed      | utf8_bin        |
+| mysql.procs_priv                | 0 Rows         | MyISAM         | 0.00MB    | 0.00MB     | 0.00MB | Fixed      | utf8_bin        |
++---------------------------------+----------------+----------------+-----------+------------+--------+------------+-----------------+
+```
+
+It's as if InnoDB database table doesn't exist when `ibdata1` was deleted
+
+```
+mysql -e "SELECT * FROM innodb_table_stats;" mysql
+ERROR 1932 (42S02) at line 1: Table 'mysql.innodb_table_stats' doesn't exist in engine
+```
+
+But they physically do exist, just the mapping was lost with deletion of `ibdata1`.
+
+```
+ls -lAhrt /var/lib/mysql/mysql | egrep 'innodb_table_stats|innodb_index_stats|transaction_registry|gtid_slave_pos'
+-rw-rw----  1 mysql mysql 1.0K May 20 08:41 gtid_slave_pos.frm
+-rw-rw----  1 mysql mysql 5.3K May 20 08:41 innodb_index_stats.frm
+-rw-rw----  1 mysql mysql 1.9K May 20 08:41 innodb_table_stats.frm
+-rw-rw----  1 mysql mysql 2.6K May 20 08:41 transaction_registry.frm
+-rw-------. 1 mysql mysql  96K May 20 08:42 gtid_slave_pos.ibd
+-rw-------. 1 mysql mysql 9.0M May 20 08:42 innodb_index_stats.ibd
+-rw-------. 1 mysql mysql 128K May 20 08:42 innodb_table_stats.ibd
+-rw-------. 1 mysql mysql 144K May 20 08:42 transaction_registry.ibd
+```
+
 # Grab dbsake and create backup directory 
 
 * Grab [dbsake](https://github.com/abg/dbsake) tool and save to `/usr/bin/dbsake`. Documentation at https://dbsake.readthedocs.io/en/latest/index.html
