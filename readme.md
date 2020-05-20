@@ -1,6 +1,6 @@
 # How to rebuild MariaDB MySQL InnoDB Database Table Mappings When ibdata1 Is Deleted
 
-`/var/lib/mysql/ibdata1` is an important file which contains MySQL InnoDB database data and mappings for per InnoDB file database tables. If you delete this file and restarted MySQL server, then MySQL server would of re-created a new `ibdata1` file but it will no contain the mapping to your existing InnoDB database tables anymore - you will have broken the mapping and this can result in web applications and MySQL clients not being able to access your MySQL database's InnoDB data. The below guide is a quick overview of how to rebuild this mapping.
+`/var/lib/mysql/ibdata1` is an important file which contains MySQL InnoDB database data and mappings for per InnoDB file database tables. If you delete this file and restarted MySQL server, then MySQL server would of re-created a new `ibdata1` file but it will not contain the mapping to your existing InnoDB database tables anymore - you will have broken the mapping and this can result in web applications and MySQL clients not being able to access your MySQL database's InnoDB data. The below guide is a quick overview of how to rebuild this mapping. The guide only works and assumes, you have your `/etc/my.cnf` set with `innodb_file_per_table = 1` to enable per InnoDB table files which will save InnoDB database table data in their own files as opposed to within `ibdata1` itself.
 
 # Grab dbsake and create backup directory 
 
@@ -17,7 +17,7 @@ mkdir -p /backup-mydata
 
 # Discard table spaces and import in 5 step stages
 
-Note this guide is for Centmin Mod LEMP stacks which have command shortcut for mysql stop, start and restarts for MariaDB MySQL server
+Note this guide is for Centmin Mod LEMP stacks which have command shortcut for mysql stop, start and restarts for MariaDB MySQL server and defaults to `innodb_file_per_table = 1` out of the box.
 
 * mysqlstop = service mariadb stop
 * mysqlstart = service mariadb start
