@@ -176,6 +176,10 @@ change `olddb` value to the database you want to rebuild from frm files
 olddb='mysql'
 newdb="${olddb}new"
 
+dbsake frmdump /var/lib/mysql/${olddb}/*.frm > /backup-mydata/${olddb}_restored.sql
+mysqladmin create ${newdb}
+mysql ${newdb} < /backup-mydata/${olddb}_restored.sql
+
 # discard
 for tbl in $(ls -1 /var/lib/mysql/${newdb}/*.frm); do
 datadir='/var/lib/mysql';
@@ -186,8 +190,8 @@ tc=$(echo $t | sed -e "s|-|@002d|g")
 # otherwise skip for non-innodb tables
 if [ -f "$datadir/${olddb}/${tc}.ibd" ]; then
 echo "DISCARD TABLESPACE for ${newdb}.${t}";
-echo "mysql -e \"ALTER TABLE ${newdb}.${t} DISCARD TABLESPACE;\"";
-mysql -e "ALTER TABLE ${newdb}.${t} DISCARD TABLESPACE;";
+echo "mysql -e \"SET SESSION foreign_key_checks=0; ALTER TABLE ${newdb}.${t} DISCARD TABLESPACE;\"";
+mysql -e "SET SESSION foreign_key_checks=0; ALTER TABLE ${newdb}.${t} DISCARD TABLESPACE;";
 fi
 done
 ```
@@ -286,13 +290,13 @@ Where:
 
 ```
 DISCARD TABLESPACE for mysqlnew.gtid_slave_pos
-mysql -e "ALTER TABLE mysqlnew.gtid_slave_pos DISCARD TABLESPACE;"
+mysql -e "SET SESSION foreign_key_checks=0; ALTER TABLE mysqlnew.gtid_slave_pos DISCARD TABLESPACE;"
 DISCARD TABLESPACE for mysqlnew.innodb_index_stats
-mysql -e "ALTER TABLE mysqlnew.innodb_index_stats DISCARD TABLESPACE;"
+mysql -e "SET SESSION foreign_key_checks=0; ALTER TABLE mysqlnew.innodb_index_stats DISCARD TABLESPACE;"
 DISCARD TABLESPACE for mysqlnew.innodb_table_stats
-mysql -e "ALTER TABLE mysqlnew.innodb_table_stats DISCARD TABLESPACE;"
+mysql -e "SET SESSION foreign_key_checks=0; ALTER TABLE mysqlnew.innodb_table_stats DISCARD TABLESPACE;"
 DISCARD TABLESPACE for mysqlnew.transaction_registry
-mysql -e "ALTER TABLE mysqlnew.transaction_registry DISCARD TABLESPACE;"
+mysql -e "SET SESSION foreign_key_checks=0; ALTER TABLE mysqlnew.transaction_registry DISCARD TABLESPACE;"
 ```
 
 **Stage 2** output would be
