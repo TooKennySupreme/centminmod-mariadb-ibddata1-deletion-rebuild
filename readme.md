@@ -66,10 +66,10 @@ for tbl in $(ls -1 /var/lib/mysql/${newdb}/*.frm); do
 datadir='/var/lib/mysql';
 t=$(echo $(basename $tbl) | sed -e 's|.frm||g');
 # conversion for hyphenated tablenames
-t=$(echo $t | sed -e "s|-|@002d|g")
+tc=$(echo $t | sed -e "s|-|@002d|g")
 # only proceed if table's frm file is linked to innodb .ibd file
 # otherwise skip for non-innodb tables
-if [ -f "$datadir/${olddb}/${t}.ibd" ]; then
+if [ -f "$datadir/${olddb}/${tc}.ibd" ]; then
 echo "DISCARD TABLESPACE for ${newdb}.${t}";
 echo "mysql -e \"ALTER TABLE ${newdb}.${t} DISCARD TABLESPACE;\"";
 mysql -e "ALTER TABLE ${newdb}.${t} DISCARD TABLESPACE;";
@@ -85,13 +85,13 @@ for tbl in $(ls -1 /var/lib/mysql/${newdb}/*.frm); do
 datadir='/var/lib/mysql';
 t=$(echo $(basename $tbl) | sed -e 's|.frm||g');
 # conversion for hyphenated tablenames
-t=$(echo $t | sed -e "s|-|@002d|g")
+tc=$(echo $t | sed -e "s|-|@002d|g")
 # only proceed if table's frm file is linked to innodb .ibd file
 # otherwise skip for non-innodb tables
-if [ -f "$datadir/${olddb}/${t}.ibd" ]; then
-echo "COPY $datadir/${olddb}/${t}.ibd" to "$datadir/${newdb}/${t}.ibd";
-\cp -af "$datadir/${olddb}/${t}.ibd" "$datadir/${newdb}/${t}.ibd";
-chown mysql:mysql "$datadir/${newdb}/${t}.ibd";
+if [ -f "$datadir/${olddb}/${tc}.ibd" ]; then
+echo "COPY $datadir/${olddb}/${tc}.ibd" to "$datadir/${newdb}/${tc}.ibd";
+\cp -af "$datadir/${olddb}/${tc}.ibd" "$datadir/${newdb}/${tc}.ibd";
+chown mysql:mysql "$datadir/${newdb}/${tc}.ibd";
 fi
 done
 ```
@@ -104,10 +104,10 @@ for tbl in $(ls -1 /var/lib/mysql/${newdb}/*.frm); do
 datadir='/var/lib/mysql';
 t=$(echo $(basename $tbl) | sed -e 's|.frm||g');
 # conversion for hyphenated tablenames
-t=$(echo $t | sed -e "s|-|@002d|g")
+tc=$(echo $t | sed -e "s|-|@002d|g")
 # only proceed if table's frm file is linked to innodb .ibd file
 # otherwise skip for non-innodb tables
-if [ -f "$datadir/${olddb}/${t}.ibd" ]; then
+if [ -f "$datadir/${olddb}/${tc}.ibd" ]; then
 echo "IMPORT TABLESPACE for ${newdb}.${t}";
 echo "mysql -e \"ALTER TABLE ${newdb}.${t} IMPORT TABLESPACE;\"";
 mysql -e "ALTER TABLE ${newdb}.${t} IMPORT TABLESPACE;";
@@ -126,12 +126,12 @@ for tbl in $(ls -1 /var/lib/mysql/${newdb}/*.frm); do
 datadir='/var/lib/mysql';
 t=$(echo $(basename $tbl) | sed -e 's|.frm||g');
 # conversion for hyphenated tablenames
-t=$(echo $t | sed -e "s|-|@002d|g")
+tc=$(echo $t | sed -e "s|-|@002d|g")
 # only proceed if table's frm file is linked to innodb .ibd file
 # otherwise skip for non-innodb tables
-if [ -f "$datadir/${olddb}/${t}.ibd" ]; then
-echo "rm -f \"$datadir/${olddb}/${t}.ibd\""
-rm -f "$datadir/${olddb}/${t}.ibd";
+if [ -f "$datadir/${olddb}/${tc}.ibd" ]; then
+echo "rm -f \"$datadir/${olddb}/${tc}.ibd\""
+rm -f "$datadir/${olddb}/${tc}.ibd";
 fi
 done
 ```
@@ -144,10 +144,10 @@ for tbl in $(ls -1 /var/lib/mysql/${newdb}/*.frm); do
 datadir='/var/lib/mysql';
 t=$(echo $(basename $tbl) | sed -e 's|.frm||g');
 # conversion for hyphenated tablenames
-t=$(echo $t | sed -e "s|-|@002d|g")
+tc=$(echo $t | sed -e "s|-|@002d|g")
 # only proceed if table's frm file is linked to innodb .ibd file
 # otherwise skip for non-innodb tables
-if [ -f "$datadir/${newdb}/${t}.ibd" ]; then
+if [ -f "$datadir/${newdb}/${tc}.ibd" ]; then
 echo "mysql -e \"ALTER TABLE ${newdb}.${t} RENAME ${olddb}.${t};\""
 mysql -e "ALTER TABLE ${newdb}.${t} RENAME ${olddb}.${t};";
 fi
